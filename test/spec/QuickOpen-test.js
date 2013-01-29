@@ -108,7 +108,7 @@ define(function (require, exports, module) {
             
             waitsFor(function () {
                 return getSearchField().val() === "lines";
-            }, "filename entry timeout", 1000);
+            }, "filename entry timeout", 2000);
             
             runs(function () {
                 pressEnter();
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
             
             waitsFor(function () {
                 return EditorManager.getCurrentFullEditor() !== null;
-            }, "file opening timeout", 3000);
+            }, "file opening timeout", 4000);
             
             runs(function () {
                 // Make sure we've opened the right file. It should open the longer one, because
@@ -128,14 +128,14 @@ define(function (require, exports, module) {
             
             waitsFor(function () {
                 return getSearchField().val() === ":50";
-            }, "goto line entry timeout", 1000);
+            }, "goto line entry timeout", 2000);
             
             var eventLooped = false;
             runs(function () {
                 pressEnter();
                 window.setTimeout(function () {
                     eventLooped = true;
-                }, 10);
+                }, 20);
             });
             
             waitsFor(function () { return eventLooped; });
