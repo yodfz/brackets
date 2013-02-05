@@ -78,6 +78,16 @@ module.exports = function (grunt) {
             options: {
                 jshintrc: '.jshintrc'
             }
+        },
+        less: {
+            compile: {
+                options: {
+                    paths: ["src/styles"]
+                },
+                files: {
+                    "src/styles/brackets.css": ["src/styles/brackets.less"]
+                }
+            }
         }
     });
 
@@ -85,6 +95,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-less');
 
     // task: install
     grunt.registerTask('install', ['write-config']);
