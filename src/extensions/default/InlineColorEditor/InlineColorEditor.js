@@ -80,7 +80,7 @@ define(function (require, exports, module) {
             var now = +new Date();
             timesum += now - message.data.start;
             timecount++;
-            window.console.log("Average time taken: ", timesum / timecount);
+            window.console.log("Double Average time taken: ", timesum / timecount);
             callback(message.data.data);
         };
         
@@ -107,6 +107,36 @@ define(function (require, exports, module) {
         };
     }
     
+    function createSingleIndirector(callback) {
+        var toExtChannel = new window.MessageChannel();
+        
+        var timesum = 0;
+        var timecount = 0;
+        
+        toExtChannel.port1.onmessage = function (message) {
+            var now = +new Date();
+            timesum += now - message.data.start;
+            timecount++;
+            window.console.log("Single Average time taken: ", timesum / timecount);
+            callback(message.data.data);
+        };
+        
+        var f1 = window.document.createElement('iframe');
+        f1.onload = function () {
+            f1.contentWindow.postMessage("channel", "*", [toExtChannel.port2]);
+        };
+        f1.setAttribute('src', "extensions/default/InlineColorEditor/fakeExtframe.html");
+        window.document.body.appendChild(f1);
+        
+        return function (message) {
+            message = {
+                data: message,
+                start: +new Date()
+            };
+            toExtChannel.port1.postMessage(message);
+        };
+    }
+
     /**
      * Inline widget containing a ColorEditor control
      * @param {!string} color  Initially selected color
@@ -251,6 +281,7 @@ define(function (require, exports, module) {
         var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
 //        var di = createFunctionDouble(this._handleColorChange.bind(this));
         var di = createDoubleIndirector(this._handleColorChange.bind(this));
+//        var di = createSingleIndirector(this._handleColorChange.bind(this));
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, di, swatchInfo);
     };
 

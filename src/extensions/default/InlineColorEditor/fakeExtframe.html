@@ -15,6 +15,11 @@
                     fromUI.onmessage = function (message) {
                         toWindow.postMessage(message.data);
                     };
+                } else if (e.ports && e.ports.length === 1) {
+                    toWindow = e.ports[0];
+                    toWindow.onmessage = function (message) {
+                        toWindow.postMessage(message.data);
+                    };
                 }
             }
             window.addEventListener('message', messageHandler, false);
