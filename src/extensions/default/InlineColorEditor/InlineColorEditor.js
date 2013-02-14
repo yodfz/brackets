@@ -37,6 +37,37 @@ define(function (require, exports, module) {
     /** @type {number} Global var used to provide a unique ID for each color editor instance's _origin field. */
     var lastOriginId = 1;
     
+    function createFunctionDouble(callback) {
+        var timesum = 0;
+        var timecount = 0;
+        
+        var toPretendUI = null;
+        
+        function backToWindow(message) {
+            var now = +new Date();
+            timesum += now - message.start;
+            timecount++;
+            window.console.log("Function Average time taken: ", timesum / timecount);
+            callback(message.data);
+        }
+        
+        function toPretendExtension(message) {
+            backToWindow(message);
+        }
+        
+        toPretendUI = function (message) {
+            toPretendExtension(message);
+        };
+        
+        return function (message) {
+            message = {
+                data: message,
+                start: +new Date()
+            };
+            toPretendUI(message);
+        };
+    }
+    
     function createDoubleIndirector(callback) {
         var toUIChannel = new window.MessageChannel();
         var UItoExtChannel = new window.MessageChannel();
@@ -218,6 +249,7 @@ define(function (require, exports, module) {
         // Create color picker control
         var allColorsInDoc = this.hostEditor.document.getText().match(InlineColorEditor.COLOR_REGEX);
         var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
+//        var di = createFunctionDouble(this._handleColorChange.bind(this));
         var di = createDoubleIndirector(this._handleColorChange.bind(this));
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, di, swatchInfo);
     };
