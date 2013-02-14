@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            /*global window */
+            "use strict";
+            
+            var fromUI = null;
+            var toWindow = null;
+            
+            function messageHandler(e) {
+                if (e.ports && e.ports.length === 2) {
+                    fromUI = e.ports[0];
+                    toWindow = e.ports[1];
+                    fromUI.onmessage = function (message) {
+                        toWindow.postMessage(message.data);
+                    };
+                }
+            }
+            window.addEventListener('message', messageHandler, false);
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

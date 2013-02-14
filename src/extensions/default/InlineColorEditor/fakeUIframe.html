@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            /*global window */
+            "use strict";
+            
+            var fromWindow = null;
+            var toExt = null;
+            
+            function messageHandler(e) {
+                if (e.ports && e.ports.length === 2) {
+                    fromWindow = e.ports[0];
+                    toExt = e.ports[1];
+                    fromWindow.onmessage = function (message) {
+                        toExt.postMessage(message.data);
+                    };
+                }
+            }
+            window.addEventListener('message', messageHandler, false);
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

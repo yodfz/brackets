@@ -37,6 +37,45 @@ define(function (require, exports, module) {
     /** @type {number} Global var used to provide a unique ID for each color editor instance's _origin field. */
     var lastOriginId = 1;
     
+    function createDoubleIndirector(callback) {
+        var toUIChannel = new window.MessageChannel();
+        var UItoExtChannel = new window.MessageChannel();
+        var fromExtChannel = new window.MessageChannel();
+        
+        var timesum = 0;
+        var timecount = 0;
+        
+        fromExtChannel.port1.onmessage = function (message) {
+            var now = +new Date();
+            timesum += now - message.data.start;
+            timecount++;
+            window.console.log("Average time taken: ", timesum / timecount);
+            callback(message.data.data);
+        };
+        
+        var f1 = window.document.createElement('iframe');
+        f1.onload = function () {
+            f1.contentWindow.postMessage("channel", "*", [toUIChannel.port2, UItoExtChannel.port1]);
+        };
+        f1.setAttribute('src', "extensions/default/InlineColorEditor/fakeUIframe.html");
+        window.document.body.appendChild(f1);
+        
+        var f2 = window.document.createElement('iframe');
+        f2.onload = function () {
+            f2.contentWindow.postMessage("channel", "*", [UItoExtChannel.port2, fromExtChannel.port2]);
+        };
+        f2.setAttribute('src', "extensions/default/InlineColorEditor/fakeExtframe.html");
+        window.document.body.appendChild(f2);
+        
+        return function (message) {
+            message = {
+                data: message,
+                start: +new Date()
+            };
+            toUIChannel.port1.postMessage(message);
+        };
+    }
+    
     /**
      * Inline widget containing a ColorEditor control
      * @param {!string} color  Initially selected color
@@ -179,7 +218,8 @@ define(function (require, exports, module) {
         // Create color picker control
         var allColorsInDoc = this.hostEditor.document.getText().match(InlineColorEditor.COLOR_REGEX);
         var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
-        this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
+        var di = createDoubleIndirector(this._handleColorChange.bind(this));
+        this.colorEditor = new ColorEditor(this.$htmlContent, this._color, di, swatchInfo);
     };
 
     /**
