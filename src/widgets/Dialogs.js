@@ -73,9 +73,7 @@ define(function (require, exports, module) {
         
         if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
-            if (primaryBtn) {
-                buttonId = primaryBtn.attr("data-button-id");
-            }
+            primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button
             this.find(".dialog-button:focus").click();

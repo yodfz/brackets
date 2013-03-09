@@ -103,6 +103,7 @@ define(function (require, exports, module) {
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("extensionmgr/InstallExtensionDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
