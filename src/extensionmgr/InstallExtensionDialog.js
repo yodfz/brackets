@@ -159,8 +159,6 @@ define(function (require, exports, module) {
      * the dialog open), or closes the dialog if no installation is in progress.
      */
     function _handleCancel() {
-        // TODO: Esc will close the dialog without us ever hearing about it (doesn't go
-        // through this code path), and then we're in a bad state.
         if (state === STATE_INSTALLING) {
             _enterState(STATE_INSTALL_CANCELLED);
         } else {
