@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, PathUtils, Mustache */
+/*global define, window, $, PathUtils, Mustache, document */
 
 define(function (require, exports, module) {
     "use strict";
@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Strings                = require("strings"),
         Commands               = require("command/Commands"),
         CommandManager         = require("command/CommandManager"),
+        KeyEvent               = require("utils/KeyEvent"),
         InstallDialogTemplate  = require("text!extensionmgr/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
@@ -80,16 +81,6 @@ define(function (require, exports, module) {
         var url, msg;
         
         switch (newState) {
-        case STATE_CLOSED:
-            // Only resolve as successful if we actually installed something.
-            Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
-            if (state === STATE_INSTALLED) {
-                dialogDeferred.resolve();
-            } else {
-                dialogDeferred.reject();
-            }
-            break;
-            
         case STATE_GETTING_URL:
             if (state === STATE_INSTALLING) {
                 // TODO: do we need to wait for acknowledgement? That will require adding a new
@@ -122,7 +113,7 @@ define(function (require, exports, module) {
                         _enterState(STATE_INSTALL_FAILED);
                     });
             } else {
-                // TODO: show error? keep Install button grayed until it's valid?
+                // TODO: Show error. Should we keep Install button grayed until it's valid?
                 newState = STATE_GETTING_URL;
             }
             break;
@@ -145,6 +136,19 @@ define(function (require, exports, module) {
                 .text(Strings.CLOSE);
             $cancelButton.hide();
             break;
+            
+        case STATE_CLOSED:
+            $(document.body).off(".installDialog");
+            
+           // Only resolve as successful if we actually installed something.
+            Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
+            if (state === STATE_INSTALLED) {
+                dialogDeferred.resolve();
+            } else {
+                dialogDeferred.reject();
+            }
+            break;
+            
         }
         state = newState;
     }
@@ -176,6 +180,12 @@ define(function (require, exports, module) {
             _enterState(STATE_CLOSED);
         } else if (state === STATE_GETTING_URL) {
             _enterState(STATE_INSTALLING);
+        }
+    }
+    
+    function _handleKeyUp(e) {
+        if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+            _handleCancel();
         }
     }
     
@@ -238,14 +248,16 @@ define(function (require, exports, module) {
         
         $dlg          = $(".install-extension-dialog.instance");
         $url          = $dlg.find(".url").focus();
-        $okButton     = $dlg.find(".dialog-button[data-button-id='ok']")
-            .on("click", _handleOk);
-        $cancelButton = $dlg.find(".dialog-button[data-button-id='cancel']")
-            .on("click", _handleCancel);
+        $okButton     = $dlg.find(".dialog-button[data-button-id='ok']");
+        $cancelButton = $dlg.find(".dialog-button[data-button-id='cancel']");
         $inputArea    = $dlg.find(".input-field");
         $msgArea      = $dlg.find(".message-field");
         $msg          = $msgArea.find(".message");
         $spinner      = $msgArea.find(".spinner");
+
+        $okButton.on("click", _handleOk);
+        $cancelButton.on("click", _handleCancel);
+        $(document.body).on("keyup.installDialog", _handleKeyUp);
         
         _enterState(STATE_GETTING_URL);
 

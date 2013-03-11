@@ -119,8 +119,8 @@ define(function (require, exports, module) {
      * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
      *      unspecified, body in the HTML template is used unchanged.
      * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
-     *      is clicked. Default true. If false, you'll need to dismiss the dialog yourself when ready
-     *      with `cancelModalDialogIfOpen()`.
+     *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
+     *      key, and dismiss the dialog yourself when ready with `cancelModalDialogIfOpen()`.
      * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
         $dlg.modal({
             backdrop: "static",
             show: true,
-            keyboard: true
+            keyboard: autoDismiss
         });
 
         return promise;
