@@ -57,22 +57,6 @@ define(function (require, exports, module) {
         state = STATE_CLOSED;
     
     /**
-     * Validate that text string is a valid url
-     * @param {String} url
-     * @return {String} empty string if valid, otherwise error string
-     */
-    function _validateUrl(url) {
-        var result = "";
-
-        var obj = PathUtils.parseUrl(url);
-        if (!obj) {
-            result = Strings.INVALID_URL;
-        }
-
-        return result;
-    }
-    
-    /**
      * @private
      * Transitions the dialog into a new state as the installation proceeds.
      * @param {number} newState The state to transition into; one of the STATE_* variables.
@@ -82,12 +66,6 @@ define(function (require, exports, module) {
         
         switch (newState) {
         case STATE_GETTING_URL:
-            if (state === STATE_INSTALLING) {
-                // TODO: do we need to wait for acknowledgement? That will require adding a new
-                // "waiting for cancelled" state.
-                installer.cancel();
-            }
-                
             // This should match the default appearance of the dialog when it first opens.
             $spinner.removeClass("spin");
             $msgArea.hide();
@@ -99,7 +77,7 @@ define(function (require, exports, module) {
             
         case STATE_INSTALLING:
             url = $url.val();
-            if (_validateUrl(url) === "") {
+            if (url !== "") {
                 $inputArea.hide();
                 $msg.text(StringUtils.format(Strings.INSTALLING_FROM, url));
                 $spinner.addClass("spin");
@@ -121,6 +99,12 @@ define(function (require, exports, module) {
         case STATE_INSTALLED:
         case STATE_INSTALL_FAILED:
         case STATE_INSTALL_CANCELLED:
+            if (newState === STATE_INSTALL_CANCELLED) {
+                // TODO: do we need to wait for acknowledgement? That will require adding a new
+                // "waiting for cancelled" state.
+                installer.cancel();
+            }
+                
             $spinner.removeClass("spin");
             if (newState === STATE_INSTALLED) {
                 msg = Strings.INSTALL_SUCCEEDED;
@@ -181,6 +165,10 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Handle key up events on the document. We use this to detect the Esc key.
+     */
     function _handleKeyUp(e) {
         if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             _handleCancel();
@@ -217,6 +205,30 @@ define(function (require, exports, module) {
     function _setInstaller(i) {
         installer = i;
     }
+    
+    /**
+     * @private
+     * Returns the jQuery objects for various dialog fileds. For unit testing only.
+     * @return {object} fields An object containing "dlg", "okButton", "cancelButton", and "url" fields.
+     */
+    function _getDialogFields() {
+        return {
+            $dlg: $dlg,
+            $okButton: $okButton,
+            $cancelButton: $cancelButton,
+            $url: $url
+        };
+    }
+    
+    /**
+     * @private
+     * Closes the dialog if it's not already closed. For unit testing only.
+     */
+    function _closeDialog() {
+        if (state !== STATE_CLOSED) {
+            _enterState(STATE_CLOSED);
+        }
+    }
 
     /**
      * @private
@@ -224,7 +236,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    function _showInstallExtensionDialog() {
+    function _showDialog() {
         if (state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
             return;
@@ -263,8 +275,11 @@ define(function (require, exports, module) {
         return dialogDeferred.promise();
     }
 
-    CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, _showInstallExtensionDialog);
+    CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, _showDialog);
     
     // For unit testing
-    exports._setInstaller = _setInstaller;
+    exports._setInstaller    = _setInstaller;
+    exports._showDialog      = _showDialog;
+    exports._getDialogFields = _getDialogFields;
+    exports._closeDialog     = _closeDialog;
 });

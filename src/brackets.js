@@ -146,6 +146,7 @@ define(function (require, exports, module) {
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
+            InstallExtensionDialog  : require("extensionmgr/InstallExtensionDialog"),
             extensions              : {}, // place for extensions to hang modules for unit tests
             doneLoading             : false
         };
